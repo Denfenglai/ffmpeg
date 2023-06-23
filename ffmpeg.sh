@@ -7,19 +7,23 @@ NC='\033[0m' # No Color
 
 # 检查用户是否是 Linux 系统，否则退出
 if [ "$(uname -s)" != "Linux" ]; then
+  clear
   echo -e "${RED}抱歉，该脚本仅适用于 Linux 系统。${NC}"
   exit 1
 fi
 
 # 检查是否为 root 用户，否则退出
 if [ "$(id -u)" != "0" ]; then
+  clear
   echo -e "${RED}请使用 root 用户执行该脚本。${NC}"
   exit 1
 fi
 
 # 检查 /usr/local/bin/ffmpeg 文件是否存在
 if [ -e "/usr/local/bin/ffmpeg" ]; then
+  clear
   read -p "FFmpeg 已安装，是否需要重新安装？(y/n): " reinstall
+  clear
   reinstall=$(echo "$reinstall" | tr '[:upper:]' '[:lower:]')  # 转换为小写字母
 
   if [[ $reinstall == "y" || $reinstall == "yes" ]]; then
@@ -32,20 +36,30 @@ fi
 
 # 检查是否安装 wget，如果未安装则使用包管理器安装
 if ! command -v wget >/dev/null 2>&1; then
+  clear
   echo "未检测到 wget，尝试安装..."
   
   # 使用 apt-get 安装 wget（Debian 或 Ubuntu）
   if command -v apt-get >/dev/null 2>&1; then
     apt-get update
-    apt-get install -y wget || { echo -e "${RED}无法安装 wget。${NC}"; exit 1; }
+    apt-get install -y wget || { clear; echo -e "${RED}无法安装 wget。${NC}"; exit 1; }
   fi
   
   # 使用 yum 安装 wget（CentOS 或 RHEL）
   if command -v yum >/dev/null 2>&1; then
     yum update -y
-    yum install -y wget || { echo -e "${RED}无法安装 wget。${NC}"; exit 1; }
+    yum install -y wget || { clear; echo -e "${RED}无法安装 wget。${NC}"; exit 1; }
   fi
 fi
+
+# 清屏函数
+clear_screen() {
+  clear  # 清屏
+  echo "-----------------"
+  echo "|  FFmpeg 安装  |"
+  echo "-----------------"
+  echo
+}
 
 # 安装函数
 install_ffmpeg() {
@@ -53,6 +67,7 @@ install_ffmpeg() {
   local ffmpeg_url=$2
   local ffprobe_url=$3
 
+  clear_screen  # 清屏
   echo -e "开始下载 FFmpeg（源：${GREEN}${source_name}${NC}）..."
   
   # 删除已有的文件
@@ -71,55 +86,60 @@ install_ffmpeg() {
   local min_size=40000000  # 设置最小文件大小为40MB
   
   if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
+    clear_screen  # 清屏
     echo "安装成功。"
     exit 0
   else
+    clear_screen  # 清屏
     echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
   fi
 }
 
+clear_screen  # 清屏
+
 # 检查 CPU 架构并下载相应的 FFmpeg 和 ffprobe 文件
 if [[ "$(uname -m)" == "aarch64" ]]; then
+  clear_screen  # 清屏
   echo "检测到 ARM 架构(aarch64)，开始下载 FFmpeg 和 ffprobe..."
 
-  # 尝试第一组链接进行安装
-  install_ffmpeg "DF官网下载" "https://dengfenglai.cloud/ffmpeg/ARM64/ffmpeg" "https://dengfenglai.cloud/ffmpeg/ARM64/ffprobe" \
-  || {
-    # 第一组链接失败，尝试第二组链接
-    echo "第一组链接安装失败，尝试第二组链接..."
-    install_ffmpeg "阿里云下载" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffmpeg" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffprobe" \
-    || {
-      # 第二组链接失败，尝试第三组链接
-      echo "第二组链接安装失败，尝试第三组链接..."
-      install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffmpeg" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffprobe" \
-      || {
-        # 全部链接失败，输出错误信息
-        echo -e "${RED}所有链接均安装失败。${NC}"
-        exit 1
-      }
-    }
-  }
+  declare -a source_urls=(
+    "https://dengfenglai.cloud/ffmpeg/ARM64/ffmpeg"
+    "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffmpeg"
+    "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffmpeg"
+  )
+
+  for url in "${source_urls[@]}"; do
+    install_ffmpeg "链接地址：$url" "$url" "${url/ffmpeg/ffprobe}" && break
+    clear_screen  # 清屏
+    echo -e "${RED}安装失败，尝试下一个链接...${NC}"
+  done
+  
+  clear_screen  # 清屏
+  echo -e "${RED}所有链接安装失败。${NC}"
+  exit 1
+
 elif [[ "$(uname -m)" == "x86_64" ]]; then
+  clear_screen  # 清屏
   echo "检测到 AMD 架构，开始下载 FFmpeg..."
 
-  # 尝试第一组链接进行安装
-  install_ffmpeg "DF官网下载" "https://dengfenglai.cloud/ffmpeg/AMD64/ffmpeg" "" \
-  || {
-    # 第一组链接失败，尝试第二组链接
-    echo "第一组链接安装失败，尝试第二组链接..."
-    install_ffmpeg "阿里云下载" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/AMD64/ffmpeg" "" \
-    || {
-      # 第二组链接失败，尝试第三组链接
-      echo "第二组链接安装失败，尝试第三组链接..."
-      install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg" "" \
-      || {
-        # 全部链接失败，输出错误信息
-        echo -e "${RED}所有链接均安装失败。${NC}"
-        exit 1
-      }
-    }
-  }
+  declare -a source_urls=(
+    "https://dengfenglai.cloud/ffmpeg/AMD64/ffmpeg"
+    "https://denfenglai.oss-cn-hongkong.aliyuncs.com/AMD64/ffmpeg"
+    "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg"
+  )
+
+  for url in "${source_urls[@]}"; do
+    install_ffmpeg "链接地址：$url" "$url" "" && break
+    clear_screen  # 清屏
+    echo -e "${RED}安装失败，尝试下一个链接...${NC}"
+  done
+
+  clear_screen  # 清屏
+  echo -e "${RED}所有链接安装失败。${NC}"
+  exit 1
+  
 else
+  clear_screen  # 清屏
   echo -e "${RED}抱歉，不支持当前 CPU 架构。${NC}"
   exit 1
 fi
