@@ -19,6 +19,7 @@ fi
 
 # 检查 /usr/local/bin/ffmpeg 文件是否存在
 if [ -e "/usr/local/bin/ffmpeg" ]; then
+  clear
   read -p "FFmpeg 已安装，是否需要重新安装？(y/n): " reinstall
   reinstall=$(echo "$reinstall" | tr '[:upper:]' '[:lower:]')  # 转换为小写字母
 
@@ -53,6 +54,7 @@ install_ffmpeg() {
   local ffmpeg_url=$2
   local ffprobe_url=$3
 
+  clear
   echo -e "开始下载 FFmpeg（源：${GREEN}${source_name}${NC}）..."
   
   # 删除已有的文件
@@ -75,7 +77,7 @@ install_ffmpeg() {
 }
 
 # 检查 CPU 架构并下载相应的 FFmpeg 和 ffprobe 文件
-if [[ "$(uname -m)" == "arm"* ]]; then
+if [[ "$(uname -m)" == "aarch64"* ]]; then
   echo "检测到 ARM 架构，开始下载 FFmpeg 和 ffprobe..."
 
   # 尝试第一组链接进行安装
@@ -98,6 +100,7 @@ elif [[ "$(uname -m)" == "x86_64" ]]; then
   # 尝试第三组链接进行安装
   install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg" ""
 else
+  clear
   echo -e "${RED}抱歉，不支持当前 CPU 架构。${NC}"
   exit 1
 fi
