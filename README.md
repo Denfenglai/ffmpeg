@@ -4,7 +4,11 @@
 
 <div align="center">
 
-# 在终端执行
+# DF
+
+</div>
+
+## Linux在终端执行
 ```bash
 bash <(curl -sL https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ffmpeg.sh)
 ```
