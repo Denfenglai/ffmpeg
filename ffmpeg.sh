@@ -7,21 +7,18 @@ NC='\033[0m' # No Color
 
 # 检查用户是否是 Linux 系统，否则退出
 if [ "$(uname -s)" != "Linux" ]; then
-  clear
   echo -e "${RED}抱歉，该脚本仅适用于 Linux 系统。${NC}"
   exit 1
 fi
 
 # 检查是否为 root 用户，否则退出
 if [ "$(id -u)" != "0" ]; then
-  clear
   echo -e "${RED}请使用 root 用户执行该脚本。${NC}"
   exit 1
 fi
 
 # 检查 /usr/local/bin/ffmpeg 文件是否存在
 if [ -e "/usr/local/bin/ffmpeg" ]; then
-  clear
   read -p "FFmpeg 已安装，是否需要重新安装？(y/n): " reinstall
   reinstall=$(echo "$reinstall" | tr '[:upper:]' '[:lower:]')  # 转换为小写字母
 
@@ -56,7 +53,6 @@ install_ffmpeg() {
   local ffmpeg_url=$2
   local ffprobe_url=$3
 
-  clear
   echo -e "开始下载 FFmpeg（源：${GREEN}${source_name}${NC}）..."
   
   # 删除已有的文件
@@ -75,12 +71,10 @@ install_ffmpeg() {
   local min_size=40000000  # 设置最小文件大小为40MB
   
   if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
-    clear
-    echo "\e[32m安装成功！感谢使用！\e[0m"
+    echo "安装成功。"
     exit 0
   else
     echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
-    exit 1
   fi
 }
 
@@ -89,24 +83,42 @@ if [[ "$(uname -m)" == "aarch64" ]]; then
   echo "检测到 ARM 架构(aarch64)，开始下载 FFmpeg 和 ffprobe..."
 
   # 尝试第一组链接进行安装
-  install_ffmpeg "DF官网下载" "https://dengfenglai.cloud/ffmpeg/ARM64/ffmpeg" "https://dengfenglai.cloud/ffmpeg/ARM64/ffprobe"
-
-  # 尝试第二组链接进行安装
-  install_ffmpeg "阿里云下载" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffmpeg" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffprobe"
-
-  # 尝试第三组链接进行安装
-  install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffmpeg" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffprobe"
+  install_ffmpeg "DF官网下载" "https://dengfenglai.cloud/ffmpeg/ARM64/ffmpeg" "https://dengfenglai.cloud/ffmpeg/ARM64/ffprobe" \
+  || {
+    # 第一组链接失败，尝试第二组链接
+    echo "第一组链接安装失败，尝试第二组链接..."
+    install_ffmpeg "阿里云下载" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffmpeg" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffprobe" \
+    || {
+      # 第二组链接失败，尝试第三组链接
+      echo "第二组链接安装失败，尝试第三组链接..."
+      install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffmpeg" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffprobe" \
+      || {
+        # 全部链接失败，输出错误信息
+        echo -e "${RED}所有链接均安装失败。${NC}"
+        exit 1
+      }
+    }
+  }
 elif [[ "$(uname -m)" == "x86_64" ]]; then
   echo "检测到 AMD 架构，开始下载 FFmpeg..."
 
   # 尝试第一组链接进行安装
-  install_ffmpeg "DF官网下载" "https://dengfenglai.cloud/ffmpeg/AMD64/ffmpeg" ""
-
-  # 尝试第二组链接进行安装
-  install_ffmpeg "阿里云下载" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/AMD64/ffmpeg" ""
-
-  # 尝试第三组链接进行安装
-  install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg" ""
+  install_ffmpeg "DF官网下载" "https://dengfenglai.cloud/ffmpeg/AMD64/ffmpeg" "" \
+  || {
+    # 第一组链接失败，尝试第二组链接
+    echo "第一组链接安装失败，尝试第二组链接..."
+    install_ffmpeg "阿里云下载" "https://denfenglai.oss-cn-hongkong.aliyuncs.com/AMD64/ffmpeg" "" \
+    || {
+      # 第二组链接失败，尝试第三组链接
+      echo "第二组链接安装失败，尝试第三组链接..."
+      install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg" "" \
+      || {
+        # 全部链接失败，输出错误信息
+        echo -e "${RED}所有链接均安装失败。${NC}"
+        exit 1
+      }
+    }
+  }
 else
   echo -e "${RED}抱歉，不支持当前 CPU 架构。${NC}"
   exit 1
