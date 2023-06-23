@@ -7,12 +7,14 @@ NC='\033[0m' # No Color
 
 # 检查用户是否是 Linux 系统，否则退出
 if [ "$(uname -s)" != "Linux" ]; then
+  clear
   echo -e "${RED}抱歉，该脚本仅适用于 Linux 系统。${NC}"
   exit 1
 fi
 
 # 检查是否为 root 用户，否则退出
 if [ "$(id -u)" != "0" ]; then
+  clear
   echo -e "${RED}请使用 root 用户执行该脚本。${NC}"
   exit 1
 fi
@@ -67,18 +69,24 @@ install_ffmpeg() {
   chmod 777 /usr/local/bin/ffprobe
 
   # 检查安装是否成功
-  if [ ! -e "/usr/local/bin/ffmpeg" ] || [ ! -e "/usr/local/bin/ffprobe" ]; then
+  local ffmpeg_size=$(stat -c%s /usr/local/bin/ffmpeg)
+  local ffprobe_size=$(stat -c%s /usr/local/bin/ffprobe)
+  
+  local min_size=40000000  # 设置最小文件大小为40MB
+  
+  if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
+    clear
+    echo "\e[32m安装成功！感谢使用！\e[0m"
+    exit 0
+  else
     echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
     exit 1
   fi
-
-  echo "安装成功。"
-  exit 0
 }
 
 # 检查 CPU 架构并下载相应的 FFmpeg 和 ffprobe 文件
-if [[ "$(uname -m)" == "aarch64"* ]]; then
-  echo "检测到 ARM 架构，开始下载 FFmpeg 和 ffprobe..."
+if [[ "$(uname -m)" == "aarch64" ]]; then
+  echo "检测到 ARM 架构(aarch64)，开始下载 FFmpeg 和 ffprobe..."
 
   # 尝试第一组链接进行安装
   install_ffmpeg "DF官网下载" "https://dengfenglai.cloud/ffmpeg/ARM64/ffmpeg" "https://dengfenglai.cloud/ffmpeg/ARM64/ffprobe"
@@ -100,7 +108,6 @@ elif [[ "$(uname -m)" == "x86_64" ]]; then
   # 尝试第三组链接进行安装
   install_ffmpeg "gitee码云下载" "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg" ""
 else
-  clear
   echo -e "${RED}抱歉，不支持当前 CPU 架构。${NC}"
   exit 1
 fi
