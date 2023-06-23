@@ -108,15 +108,24 @@ if [[ "$(uname -m)" == "aarch64" ]]; then
     "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffmpeg"
   )
 
+  install_success=false
   for url in "${source_urls[@]}"; do
-    install_ffmpeg "链接地址：$url" "$url" "${url/ffmpeg/ffprobe}" && break
+    install_ffmpeg "链接地址：$url" "$url" "${url/ffmpeg/ffprobe}"
+    if [ $? -eq 0 ]; then
+      install_success=true
+      break
+    fi
     clear_screen  # 清屏
     echo -e "${RED}安装失败，尝试下一个链接...${NC}"
   done
   
-  clear_screen  # 清屏
-  echo -e "${RED}所有链接安装失败。${NC}"
-  exit 1
+  if $install_success; then
+    clear_screen  # 清屏
+    echo -e "${GREEN}安装成功。${NC}"
+  else
+    clear_screen  # 清屏
+    echo -e "${RED}所有链接安装失败。${NC}"
+  fi
 
 elif [[ "$(uname -m)" == "x86_64" ]]; then
   clear_screen  # 清屏
@@ -128,15 +137,24 @@ elif [[ "$(uname -m)" == "x86_64" ]]; then
     "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg"
   )
 
+  install_success=false
   for url in "${source_urls[@]}"; do
-    install_ffmpeg "链接地址：$url" "$url" "" && break
+    install_ffmpeg "链接地址：$url" "$url" ""
+    if [ $? -eq 0 ]; then
+      install_success=true
+      break
+    fi
     clear_screen  # 清屏
     echo -e "${RED}安装失败，尝试下一个链接...${NC}"
   done
 
-  clear_screen  # 清屏
-  echo -e "${RED}所有链接安装失败。${NC}"
-  exit 1
+  if $install_success; then
+    clear_screen  # 清屏
+    echo -e "${GREEN}安装成功。${NC}"
+  else
+    clear_screen  # 清屏
+    echo -e "${RED}所有链接安装失败。${NC}"
+  fi
   
 else
   clear_screen  # 清屏
