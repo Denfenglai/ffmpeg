@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#下载源
+    下载源=DF官网下载
+    link=https://dengfenglai.cloud/ffmpeg
+#阿里link=https://denfenglai.oss-cn-hongkong.aliyuncs.com
+#码云link=https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master
+
+    
+
+
 # 颜色样式
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -22,14 +31,16 @@ fi
 # 检查 /usr/local/bin/ffmpeg 文件是否存在
 if [ -e "/usr/local/bin/ffmpeg" ]; then
   clear
-  read -p "FFmpeg 已安装，是否需要重新安装？(y/n): " reinstall
+  echo -e "\e[1;31m注意:"
+  echo -e "\e[1;34mffmpeg已安装"
+  read -p "是否需要删除重新安装？(Y/N): " reinstall
   clear
   reinstall=$(echo "$reinstall" | tr '[:upper:]' '[:lower:]')  # 转换为小写字母
 
   if [[ $reinstall == "y" || $reinstall == "yes" ]]; then
-    echo "开始重新安装 FFmpeg..."
+    echo -e "\e[32m开始重新安装 FFmpeg...\e[0m"
   else
-    echo "退出安装。"
+    echo -e "\e[32m退出安装\e[0m“”"
     exit 0
   fi
 fi
@@ -55,31 +66,40 @@ fi
 # 清屏函数
 clear_screen() {
   clear  # 清屏
-  echo "-----------------"
-  echo "|  FFmpeg 安装  |"
-  echo "-----------------"
+  echo "————————————————————————————"
+  echo "  		  FFmpeg 安装       "
+  echo "  		  作者：等风来       "
+  echo " 	    dengfenglai.cloud  "
+  echo "————————————————————————————"
   echo
 }
 
-# 安装函数
-install_ffmpeg() {
-  local source_name=$1
-  local ffmpeg_url=$2
-  local ffprobe_url=$3
-
   clear_screen  # 清屏
-  echo -e "开始下载 FFmpeg（源：${GREEN}${source_name}${NC}）..."
-  
-  # 删除已有的文件
-  rm -f /usr/local/bin/ffmpeg
-  rm -f /usr/local/bin/ffprobe
+  if [ $(uname -m) == "aarch64" ]; then
+    echo -e "\e[1;36m正在下载 \e[32mffmpeg\e[0m"
+    echo -e "\e[34m下载源:\e[33m${下载源}\e[0m"
+    echo
+    cd /usr/local/bin
+    rm -rf /usr/local/bin/ffmpeg
+    rm -rf /usr/local/bin/ffprobe
+    time wget ${link}/ARM64/ffmpeg
+    echo -e "\e[1;32m正在下载 \e[32mffprobe\e[0m"
+    echo 
+    time wget ${link}/ARM64/ffprobe
+    chmod 777 ffmpeg
+    chmod 777 ffprobe
+    
+elif [ $(uname -m) == "x86_64" ]; then
+    clear_screen
+    echo -e "\e[1;36m正在下载 \e[32mffmpeg\e[0m"  
+    echo
+    cd /usr/local/bin
+    rm -rf /usr/local/bin/ffmpeg
+    time wget ${link}/AMD64/ffmpeg
+    chmod 777 ffmpeg
+fi
 
-  wget -O /usr/local/bin/ffmpeg $ffmpeg_url
-  wget -O /usr/local/bin/ffprobe $ffprobe_url
-  chmod 777 /usr/local/bin/ffmpeg
-  chmod 777 /usr/local/bin/ffprobe
-
-  # 检查安装是否成功
+# 检查安装是否成功
   local ffmpeg_size=$(stat -c%s /usr/local/bin/ffmpeg)
   local ffprobe_size=$(stat -c%s /usr/local/bin/ffprobe)
   
@@ -92,72 +112,4 @@ install_ffmpeg() {
   else
     clear_screen  # 清屏
     echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
-  fi
-}
-
-clear_screen  # 清屏
-
-# 检查 CPU 架构并下载相应的 FFmpeg 和 ffprobe 文件
-if [[ "$(uname -m)" == "aarch64" ]]; then
-  clear_screen  # 清屏
-  echo "检测到 ARM 架构(aarch64)，开始下载 FFmpeg 和 ffprobe..."
-
-  declare -a source_urls=(
-    "https://dengfenglai.cloud/ffmpeg/ARM64/ffmpeg"
-    "https://denfenglai.oss-cn-hongkong.aliyuncs.com/ARM64/ffmpeg"
-    "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/ARM64/ffmpeg"
-  )
-
-  install_success=false
-  for url in "${source_urls[@]}"; do
-    install_ffmpeg "链接地址：$url" "$url" "${url/ffmpeg/ffprobe}"
-    if [ $? -eq 0 ]; then
-      install_success=true
-      break
-    fi
-    clear_screen  # 清屏
-    echo -e "${RED}安装失败，尝试下一个链接...${NC}"
-  done
-  
-  if $install_success; then
-    clear_screen  # 清屏
-    echo -e "${GREEN}安装成功。${NC}"
-  else
-    clear_screen  # 清屏
-    echo -e "${RED}所有链接安装失败。${NC}"
-  fi
-
-elif [[ "$(uname -m)" == "x86_64" ]]; then
-  clear_screen  # 清屏
-  echo "检测到 AMD 架构，开始下载 FFmpeg..."
-
-  declare -a source_urls=(
-    "https://dengfenglai.cloud/ffmpeg/AMD64/ffmpeg"
-    "https://denfenglai.oss-cn-hongkong.aliyuncs.com/AMD64/ffmpeg"
-    "https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master/AMD64/ffmpeg"
-  )
-
-  install_success=false
-  for url in "${source_urls[@]}"; do
-    install_ffmpeg "链接地址：$url" "$url" ""
-    if [ $? -eq 0 ]; then
-      install_success=true
-      break
-    fi
-    clear_screen  # 清屏
-    echo -e "${RED}安装失败，尝试下一个链接...${NC}"
-  done
-
-  if $install_success; then
-    clear_screen  # 清屏
-    echo -e "${GREEN}安装成功。${NC}"
-  else
-    clear_screen  # 清屏
-    echo -e "${RED}所有链接安装失败。${NC}"
-  fi
-  
-else
-  clear_screen  # 清屏
-  echo -e "${RED}抱歉，不支持当前 CPU 架构。${NC}"
-  exit 1
-fi
+  fi 
