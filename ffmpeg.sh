@@ -32,7 +32,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 
-    if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
+    if [[ $ffmpeg_size -gt $min_size ]]; then
     clear_screen  # 清屏
       clear
   echo -e "==============================="
@@ -95,8 +95,23 @@ clear_screen() {
     echo -e "\e[34m下载源:\e[33m${name}\e[0m"
     echo 
     time wget ${link}/ARM64/ffprobe
+    # 设定文件大小
+  ffmpeg_size=$(stat -c%s /usr/local/bin/ffmpeg)
+  ffprobe_size=$(stat -c%s /usr/local/bin/ffprobe)
+  min_size=40000000  # 设置最小文件大小为40MB
+#检查是否安装成功  
+  if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
+    clear_screen  # 清屏
     chmod 777 ffmpeg
     chmod 777 ffprobe
+    echo -e "\e[32m安装成功\e[0m"
+    echo -e "\e[33m重启Yunzai后就能用了"
+    echo -e "\e[36m主页dengfenglai.cloud\e[34m"
+    echo -e "\e[37mQQ交流群:692314526\e[0m"
+    exit 0
+  else
+    echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
+  fi 
     
 elif [ $(uname -m) == "x86_64" ]; then
     clear_screen
@@ -106,16 +121,14 @@ elif [ $(uname -m) == "x86_64" ]; then
     cd /usr/local/bin
     rm -rf /usr/local/bin/ffmpeg
     time wget ${link}/AMD64/ffmpeg
-    chmod 777 ffmpeg
-fi
-
-# 设定文件大小
+    # 设定文件大小
   ffmpeg_size=$(stat -c%s /usr/local/bin/ffmpeg)
   ffprobe_size=$(stat -c%s /usr/local/bin/ffprobe)
   min_size=40000000  # 设置最小文件大小为40MB
 #检查是否安装成功  
-  if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
+  if [[ $ffmpeg_size -gt $min_size  ]]; then
     clear_screen  # 清屏
+    chmod 777 ffmpeg
     echo -e "\e[32m安装成功\e[0m"
     echo -e "\e[33m重启Yunzai后就能用了"
     echo -e "\e[36m主页dengfenglai.cloud\e[34m"
@@ -124,3 +137,5 @@ fi
   else
     echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
   fi 
+fi
+
