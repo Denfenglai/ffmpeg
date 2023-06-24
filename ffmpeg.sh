@@ -1,12 +1,15 @@
 #!/bin/bash
 
 #下载源
-    下载源=DF官网下载
+    name=DF官网下载
     link=https://dengfenglai.cloud/ffmpeg
 #阿里link=https://denfenglai.oss-cn-hongkong.aliyuncs.com
 #码云link=https://gitee.com/Wind-is-so-strong/ffmpeg/raw/master
 
-    
+# 设定文件大小
+  ffmpeg_size=$(stat -c%s /usr/local/bin/ffmpeg)
+  ffprobe_size=$(stat -c%s /usr/local/bin/ffprobe)
+  min_size=40000000  # 设置最小文件大小为40MB
 
 
 # 颜色样式
@@ -28,11 +31,15 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
-# 检查 /usr/local/bin/ffmpeg 文件是否存在
-if [ -e "/usr/local/bin/ffmpeg" ]; then
-  clear
-  echo -e "\e[1;31m注意:"
-  echo -e "\e[1;34mffmpeg已安装"
+
+    if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
+    clear_screen  # 清屏
+      clear
+  echo -e "==============================="
+  echo -e "            DF 等风来"
+  echo -e "==============================="
+  echo -e "       \e[1;31m注意:\e[0m"
+  echo -e "       FFmpeg\e[1;36m 已安装\e[0m"
   read -p "是否需要删除重新安装？(Y/N): " reinstall
   clear
   reinstall=$(echo "$reinstall" | tr '[:upper:]' '[:lower:]')  # 转换为小写字母
@@ -43,7 +50,7 @@ if [ -e "/usr/local/bin/ffmpeg" ]; then
     echo -e "\e[32m退出安装\e[0m“”"
     exit 0
   fi
-fi
+  fi 
 
 # 检查是否安装 wget，如果未安装则使用包管理器安装
 if ! command -v wget >/dev/null 2>&1; then
@@ -66,24 +73,26 @@ fi
 # 清屏函数
 clear_screen() {
   clear  # 清屏
-  echo "————————————————————————————"
-  echo "  		  FFmpeg 安装       "
-  echo "  		  作者：等风来       "
-  echo " 	    dengfenglai.cloud  "
-  echo "————————————————————————————"
+  echo "==========================="
+  echo "      FFmpeg 安装"
+  echo "      作者：等风来        "
+  echo "      dengfenglai.cloud "
+  echo "==========================="
   echo
 }
 
   clear_screen  # 清屏
   if [ $(uname -m) == "aarch64" ]; then
     echo -e "\e[1;36m正在下载 \e[32mffmpeg\e[0m"
-    echo -e "\e[34m下载源:\e[33m${下载源}\e[0m"
+    echo -e "\e[34m下载源:\e[33m${name}\e[0m"
     echo
     cd /usr/local/bin
     rm -rf /usr/local/bin/ffmpeg
     rm -rf /usr/local/bin/ffprobe
     time wget ${link}/ARM64/ffmpeg
+    echo
     echo -e "\e[1;32m正在下载 \e[32mffprobe\e[0m"
+    echo -e "\e[34m下载源:\e[33m${name}\e[0m"
     echo 
     time wget ${link}/ARM64/ffprobe
     chmod 777 ffmpeg
@@ -92,6 +101,7 @@ clear_screen() {
 elif [ $(uname -m) == "x86_64" ]; then
     clear_screen
     echo -e "\e[1;36m正在下载 \e[32mffmpeg\e[0m"  
+    echo -e "\e[34m下载源:\e[33m${name}\e[0m"
     echo
     cd /usr/local/bin
     rm -rf /usr/local/bin/ffmpeg
@@ -99,17 +109,18 @@ elif [ $(uname -m) == "x86_64" ]; then
     chmod 777 ffmpeg
 fi
 
-# 检查安装是否成功
-  local ffmpeg_size=$(stat -c%s /usr/local/bin/ffmpeg)
-  local ffprobe_size=$(stat -c%s /usr/local/bin/ffprobe)
-  
-  local min_size=40000000  # 设置最小文件大小为40MB
-  
+# 设定文件大小
+  ffmpeg_size=$(stat -c%s /usr/local/bin/ffmpeg)
+  ffprobe_size=$(stat -c%s /usr/local/bin/ffprobe)
+  min_size=40000000  # 设置最小文件大小为40MB
+#检查是否安装成功  
   if [[ $ffmpeg_size -gt $min_size && $ffprobe_size -gt $min_size ]]; then
     clear_screen  # 清屏
-    echo "安装成功。"
+    echo -e "\e[32m安装成功\e[0m"
+    echo -e "\e[33m重启Yunzai后就能用了"
+    echo -e "\e[36m主页dengfenglai.cloud\e[34m"
+    echo -e "\e[37mQQ交流群:692314526\e[0m"
     exit 0
   else
-    # 清屏
     echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
   fi 
