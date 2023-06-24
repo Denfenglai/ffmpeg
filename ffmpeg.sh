@@ -110,6 +110,6 @@ fi
     echo "安装成功。"
     exit 0
   else
-    clear_screen  # 清屏
+    # 清屏
     echo -e "${RED}FFmpeg 安装失败，请检查你的网络。${NC}"
   fi 
